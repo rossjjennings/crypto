@@ -1,0 +1,2 @@
+alphabetic-words and hyphenated-words are derived from 2+2+3lem in 12dicts.
+contractions consists of all contractions in 2+2+3cmn.
