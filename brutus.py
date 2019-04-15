@@ -45,6 +45,7 @@ def solve_vig(cryptogram, key_length):
         test_keys = product(*([alphabet]*key_length))
     
     for test_key in test_keys:
+        test_key = ''.join(test_key)
         guess = vigenere.decrypt(test_key, cryptogram)
         score = score_markov(guess)
         if score < min_score:
