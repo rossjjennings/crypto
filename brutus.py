@@ -4,6 +4,9 @@ from subs import alphabet
 import subs
 import vigenere
 
+with open('alphabetic-words.txt') as f:
+    words = f.read().split()
+
 def check(cryptogram):
     for i in range(26):
         ct_alpha = alphabet[i:] + alphabet[:i]
@@ -34,15 +37,19 @@ def atbash(message):
 def solve_vig(cryptogram, key_length):
     min_score = score_markov(cryptogram)
     soln = cryptogram
-    soln_alphas = [alphabet]*key_length
-    for indices in product(*([range(26)]*key_length)):
-        ct_alphas = []
-        for i in indices:
-            ct_alphas.append(alphabet[i:] + alphabet[:i])
-        guess = vigenere.decrypt(ct_alphas, cryptogram)
+    soln_key = 'A'
+    
+    if key_length == 'words':
+        test_keys = (word.upper() for word in words)
+    else:
+        test_keys = product(*([alphabet]*key_length))
+    
+    for test_key in test_keys:
+        guess = vigenere.decrypt(test_key, cryptogram)
         score = score_markov(guess)
         if score < min_score:
             min_score = score
             soln = guess
-            soln_alphas = ct_alphas
-    return soln_alphas, soln
+            soln_key = test_key
+    
+    return soln_key, soln
