@@ -14,13 +14,13 @@ def index_recursive(item, tree):
         if len(node) > 1: 
             index = index_recursive(item, node) 
             if index is not None: 
-                index.insert(0, i) 
+                index.append(i) 
                 return index 
     return None
 
 def item_recursive(index, tree):
     item = tree
-    for i in index:
+    for i in index[::-1]:
         item = item[i]
     return item
 
@@ -30,9 +30,7 @@ def mux(indices):
     text = ""
     for j in range(len(indices) // 3):
         index = indices[3*j:3*(j+1)]
-        #print(''.join(str(i) for i in index), end='.')
         text += item_recursive(index, output_cipher)
-    #print()
     return text
 
 def demux(text):
@@ -51,9 +49,7 @@ def compress(plaintext):
         if c not in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ':
             c = '+'
         index = index_recursive(c, input_cipher)
-        #print(''.join(str(i) for i in index), end = ' ')
         indices.extend(index)
-    #print()
     
     extend_by = {0: 0, 1: 2, 2: 1}[len(indices) % 3]
     indices.extend([0]*extend_by)
@@ -178,11 +174,11 @@ def sum(text1, text2):
     exponent = 3*max(len(text1), len(text2))
     
     z1 = 0
-    for digit in demux(text1):
+    for digit in demux(text1)[::-1]:
         z1 = 3*z1 + digit
     
     z2 = 0
-    for digit in demux(text2):
+    for digit in demux(text2)[::-1]:
         z2 = 3*z2 + digit
     
     z_out = z1 + z2 % 3**exponent
@@ -192,17 +188,17 @@ def sum(text1, text2):
         z_new = z_out//3
         digits.append(z_out - 3*z_new)
         z_out = z_new
-    return mux(digits[::-1])
+    return mux(digits)
 
 def product(text, key):
     exponent = 3*max(len(text), len(key))
     
     z_text = 0
-    for digit in demux(text):
+    for digit in demux(text)[::-1]:
         z_text = 3*z_text + digit
     
     z_key = 0
-    for digit in demux(key):
+    for digit in demux(key)[::-1]:
         z_key = 3*z_key + digit
     
     z_out = z_text * z_key % 3**exponent
@@ -212,7 +208,7 @@ def product(text, key):
         z_new = z_out//3
         digits.append(z_out - 3*z_new)
         z_out = z_new
-    return mux(digits[::-1])
+    return mux(digits)
 
 def euclid_gcd(a, b): 
     bigger, smaller = max(a, b), min(a, b) 
@@ -231,11 +227,13 @@ def euclid_gcd(a, b):
         coeff_smaller = next_coeff_smaller 
     return bigger, prev_coeff_bigger, prev_coeff_smaller
 
-def inverse(key, length):
+def inverse(key, length=None):
+    if length is None:
+        length = len(key)
     exponent = 3*length
     
     z_key = 0
-    for digit in demux(key):
+    for digit in demux(key)[::-1]:
         z_key = 3*z_key + digit
     
     assert(z_key < 3**exponent)
@@ -249,7 +247,7 @@ def inverse(key, length):
         z_new = inverse//3
         digits.append(inverse - 3*z_new)
         inverse = z_new
-    return mux(digits[::-1])
+    return mux(digits)
 
 def quotient(text, key):
     length = max(len(text), len(key))
