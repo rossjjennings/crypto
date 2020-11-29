@@ -89,7 +89,7 @@ def trifid_unmix(ciphertext):
     indices_unmixed[2::3] = indices[2*n:3*n]
     return mux(indices_unmixed)
 
-def heisenberg_add(key, plaintext):
+def heisenberg_add(plaintext, key):
     n = len(plaintext)
     cipher_indices = []
     for i in range(n):
@@ -103,7 +103,7 @@ def heisenberg_add(key, plaintext):
         ])
     return mux(cipher_indices)
 
-def heisenberg_subtract(key, ciphertext):
+def heisenberg_subtract(ciphertext, key):
     n = len(ciphertext)
     plain_indices = []
     for i in range(n):
@@ -198,6 +198,14 @@ def sum(text1, text2):
     
     return as_text(z_out, length)
 
+def difference(text1, text2):
+    length = max(len(text1), len(text2))
+    z1, z2 = as_integer(text1), as_integer(text2)
+    
+    z_out = z1 - z2 % 3**(3*length)
+    
+    return as_text(z_out, length)
+
 def product(text, key):
     length = max(len(text), len(key))
     z_text, z_key = as_integer(text), as_integer(key)
@@ -267,10 +275,11 @@ if __name__ == '__main__':
     parser.add_argument('-m', '--mix', action='store_true')
     parser.add_argument('-u', '--unmix', action='store_true')
     parser.add_argument('-f', '--frobnicate', action='store_true')
-    #parser.add_argument('-g', '--unfrobnicate', action='store_true')
     parser.add_argument('-k', '--key', type=str, default=None)
     parser.add_argument('-a', '--add', action='store_true')
     parser.add_argument('-s', '--subtract', action='store_true')
+    parser.add_argument('-A', '--heisenberg-add', action='store_true')
+    parser.add_argument('-S', '--heisenberg-subtract', action='store_true')
     parser.add_argument('-p', '--product', action='store_true')
     parser.add_argument('-q', '--quotient', action='store_true')
     parser.add_argument('-P', '--double-product', action='store_true')
@@ -284,7 +293,12 @@ if __name__ == '__main__':
         if args.key is None:
             print("Can't add without a key!") 
         else:
-            text = heisenberg_add(args.key, text)
+            text = sum(text, args.key)
+    if args.heisenberg_add:
+        if args.key is None:
+            print("Can't add without a key!") 
+        else:
+            text = heisenberg_add(text, args.key)
     if args.product:
         if args.key is None:
             print("Can't multiply without a key!") 
@@ -299,8 +313,6 @@ if __name__ == '__main__':
         text = trifid_mix(text)
     if args.frobnicate:
         text = frobnicate(text)
-    #if args.unfrobnicate:
-    #    text = unfrobnicate(text)
     if args.unmix:
         text = trifid_unmix(text)
     if args.double_quotient:
@@ -313,11 +325,16 @@ if __name__ == '__main__':
             print("Can't divide without a key!") 
         else:
             text = quotient(text, args.key)
+    if args.heisenberg_subtract:
+        if args.key is None:
+            print("Can't subtract without a key!") 
+        else:
+            text = heisenberg_subtract(text, args.key)
     if args.subtract:
         if args.key is None:
             print("Can't subtract without a key!") 
         else:
-            text = heisenberg_subtract(args.key, text)
+            text = difference(text, args.key)
     if args.decompress:
         text = decompress(text)
     print(text)
