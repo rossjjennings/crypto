@@ -170,45 +170,41 @@ def frobnicate(text, modulus=2):
         z = z_new
     return ''.join(symbols[digit - 1] for digit in digits[::-1])
 
-def sum(text1, text2):
-    exponent = 3*max(len(text1), len(text2))
-    
-    z1 = 0
-    for digit in demux(text1)[::-1]:
-        z1 = 3*z1 + digit
-    
-    z2 = 0
-    for digit in demux(text2)[::-1]:
-        z2 = 3*z2 + digit
-    
-    z_out = z1 + z2 % 3**exponent
-    
+def as_integer(text):
+    z = 0
+    for digit in demux(text)[::-1]:
+        z = 3*z + digit
+    return z
+
+def as_text(z, length=None):
     digits = []
-    for i in range(exponent):
-        z_new = z_out//3
-        digits.append(z_out - 3*z_new)
-        z_out = z_new
+    
+    i = 0
+    while z != 0 or (length is not None and i < 3*length):
+        z_new = z//3
+        digits.append(z - 3*z_new)
+        z = z_new
+        i += 1
+    
+    extend_by = {0: 0, 1: 2, 2: 1}[len(digits) % 3]
+    digits.extend([0]*extend_by)
     return mux(digits)
 
+def sum(text1, text2):
+    length = max(len(text1), len(text2))
+    z1, z2 = as_integer(text1), as_integer(text2)
+    
+    z_out = z1 + z2 % 3**(3*length)
+    
+    return as_text(z_out, length)
+
 def product(text, key):
-    exponent = 3*max(len(text), len(key))
+    length = max(len(text), len(key))
+    z_text, z_key = as_integer(text), as_integer(key)
     
-    z_text = 0
-    for digit in demux(text)[::-1]:
-        z_text = 3*z_text + digit
+    z_out = z_text * z_key % 3**(3*length)
     
-    z_key = 0
-    for digit in demux(key)[::-1]:
-        z_key = 3*z_key + digit
-    
-    z_out = z_text * z_key % 3**exponent
-    
-    digits = []
-    for i in range(exponent):
-        z_new = z_out//3
-        digits.append(z_out - 3*z_new)
-        z_out = z_new
-    return mux(digits)
+    return as_text(z_out, length)
 
 def euclid_gcd(a, b): 
     bigger, smaller = max(a, b), min(a, b) 
@@ -229,25 +225,16 @@ def euclid_gcd(a, b):
 
 def inverse(key, length=None):
     if length is None:
-        length = len(key)
-    exponent = 3*length
+        length = len(key)    
+    z_key = as_integer(key)
     
-    z_key = 0
-    for digit in demux(key)[::-1]:
-        z_key = 3*z_key + digit
-    
-    assert(z_key < 3**exponent)
+    assert(z_key < 3**(3*length))
     assert(z_key % 3 != 0)
-    gcd, coeff, inverse = euclid_gcd(z_key, 3**exponent)
+    gcd, coeff, inverse = euclid_gcd(z_key, 3**(3*length))
     assert(gcd == 1)
-    inverse = inverse % 3**exponent
+    inverse = inverse % 3**(3*length)
     
-    digits = []
-    for i in range(exponent):
-        z_new = inverse//3
-        digits.append(inverse - 3*z_new)
-        inverse = z_new
-    return mux(digits)
+    return as_text(inverse, length)
 
 def quotient(text, key):
     length = max(len(text), len(key))
