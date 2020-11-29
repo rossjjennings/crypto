@@ -48,7 +48,7 @@ def compress(plaintext):
     for c in plaintext:
         if c not in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ':
             c = '+'
-        index = index_recursive(c, input_cipher)
+        index = index_recursive(c, input_cipher)[::-1]
         indices.extend(index)
     
     extend_by = {0: 0, 1: 2, 2: 1}[len(indices) % 3]
@@ -242,6 +242,21 @@ def quotient(text, key):
     inverse_key = inverse(key, length)
     return product(text, inverse_key)
 
+def double_product(text, key):
+    inverse_key = inverse(key, max(len(text), len(key)))
+    half_key_1 = inverse(sum(inverse_key, 'c'))
+    intermediate = product(text, half_key_1)
+    half_key_2 = inverse(sum(inverse_key, 'f'))
+    return product(intermediate[::-1], half_key_2)
+
+def double_quotient(text, key):
+    inverse_key = inverse(key, max(len(text), len(key)))
+    half_key_2 = sum(inverse_key, 'f')
+    intermediate = product(text, half_key_2)
+    half_key_1 = sum(inverse_key, 'c')
+    return product(intermediate[::-1], half_key_1)
+
+
 if __name__ == '__main__':
     import argparse
 
@@ -258,6 +273,8 @@ if __name__ == '__main__':
     parser.add_argument('-s', '--subtract', action='store_true')
     parser.add_argument('-p', '--product', action='store_true')
     parser.add_argument('-q', '--quotient', action='store_true')
+    parser.add_argument('-P', '--double-product', action='store_true')
+    parser.add_argument('-Q', '--double-quotient', action='store_true')
     args = parser.parse_args()
 
     text = args.text
@@ -273,6 +290,11 @@ if __name__ == '__main__':
             print("Can't multiply without a key!") 
         else:
             text = product(text, args.key)
+    if args.double_product:
+        if args.key is None:
+            print("Can't multiply without a key!") 
+        else:
+            text = double_product(text, args.key)
     if args.mix:
         text = trifid_mix(text)
     if args.frobnicate:
@@ -281,6 +303,11 @@ if __name__ == '__main__':
     #    text = unfrobnicate(text)
     if args.unmix:
         text = trifid_unmix(text)
+    if args.double_quotient:
+        if args.key is None:
+            print("Can't divide without a key!") 
+        else:
+            text = double_quotient(text, args.key)
     if args.quotient:
         if args.key is None:
             print("Can't divide without a key!") 
