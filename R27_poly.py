@@ -88,3 +88,45 @@ def poly_double_quotient(text, key):
     intermediate = poly_product(text, half_key_2)
     half_key_1 = poly_sum(inverse_key, 'c')
     return poly_product(intermediate[::-1], half_key_1)
+
+
+if __name__ == '__main__':
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('text', type=str)
+    parser.add_argument('-c', '--compress', action='store_true')
+    parser.add_argument('-d', '--decompress', action='store_true')
+    parser.add_argument('-k', '--key', type=str, default=None)
+    parser.add_argument('-p', '--product', action='store_true')
+    parser.add_argument('-q', '--quotient', action='store_true')
+    parser.add_argument('-P', '--double-product', action='store_true')
+    parser.add_argument('-Q', '--double-quotient', action='store_true')
+    args = parser.parse_args()
+
+    text = args.text
+    if args.compress:
+        text = compress(text)
+    if args.product:
+        if args.key is None:
+            print("Can't multiply without a key!")
+        else:
+            text = poly_product(text, args.key)
+    if args.double_product:
+        if args.key is None:
+            print("Can't multiply without a key!")
+        else:
+            text = poly_double_product(text, args.key)
+    if args.double_quotient:
+        if args.key is None:
+            print("Can't divide without a key!")
+        else:
+            text = poly_double_quotient(text, args.key)
+    if args.quotient:
+        if args.key is None:
+            print("Can't divide without a key!")
+        else:
+            text = poly_quotient(text, args.key)
+    if args.decompress:
+        text = decompress(text)
+    print(text)
