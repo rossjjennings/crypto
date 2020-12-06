@@ -250,18 +250,50 @@ def quotient(text, key):
     inverse_key = inverse(key, length)
     return product(text, inverse_key)
 
-def double_product(text, key):
-    inverse_key = inverse(key, max(len(text), len(key)))
-    half_key_1 = inverse(sum(inverse_key, 'c'))
+def double_product(text, key, schedule='interleaved'):
+    size = max(len(text), len(key))
+    if schedule == 'nilpotent_shift':
+        inverse_key = inverse(key, size)
+        half_key_1 = inverse(sum(inverse_key, 'c'))
+        half_key_2 = inverse(sum(inverse_key, 'f'))
+    elif schedule == 'sequential':
+        inverse_key = inverse(key, 2*size)
+        half_key_1 = inverse_key[:size]
+        half_key_2 = inverse_key[size:]
+        if as_integer(half_key_2[0]) % 3 == 0:
+            half_key_2 = sum(half_key_2, half_key_1)
+        half_key_1 = inverse(half_key_1)
+        half_key_2 = inverse(half_key_2)
+    elif schedule == 'interleaved':
+        inverse_key = inverse(key, 2*size)
+        half_key_1 = inverse_key[0::2]
+        half_key_2 = inverse_key[1::2]
+        if as_integer(half_key_2[0]) % 3 == 0:
+            half_key_2 = sum(half_key_2, half_key_1)
+        half_key_1 = inverse(half_key_1)
+        half_key_2 = inverse(half_key_2)
     intermediate = product(text, half_key_1)
-    half_key_2 = inverse(sum(inverse_key, 'f'))
     return product(intermediate[::-1], half_key_2)
 
-def double_quotient(text, key):
-    inverse_key = inverse(key, max(len(text), len(key)))
-    half_key_2 = sum(inverse_key, 'f')
+def double_quotient(text, key, schedule='interleaved'):
+    size = max(len(text), len(key))
+    if schedule == 'nilpotent_shift':
+        inverse_key = inverse(key, size)
+        half_key_1 = sum(inverse_key, 'c')
+        half_key_2 = sum(inverse_key, 'f')
+    elif schedule == 'sequential':
+        inverse_key = inverse(key, 2*size)
+        half_key_1 = inverse_key[:size]
+        half_key_2 = inverse_key[size:]
+        if as_integer(half_key_2[0]) % 3 == 0:
+            half_key_2 = sum(half_key_2, half_key_1)
+    elif schedule == 'interleaved':
+        inverse_key = inverse(key, 2*size)
+        half_key_1 = inverse_key[0::2]
+        half_key_2 = inverse_key[1::2]
+        if as_integer(half_key_2[0]) % 3 == 0:
+            half_key_2 = sum(half_key_2, half_key_1)
     intermediate = product(text, half_key_2)
-    half_key_1 = sum(inverse_key, 'c')
     return product(intermediate[::-1], half_key_1)
 
 
