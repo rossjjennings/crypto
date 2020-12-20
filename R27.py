@@ -2,10 +2,10 @@ import yaml
 import gmpy2
 
 with open('R27.yml') as f:
-    compressed_cipher = yaml.safe_load(f)
+    basic_cipher = yaml.safe_load(f)
 
 with open('R27-compression.yml') as f:
-    basic_cipher = yaml.safe_load(f)
+    compressed_cipher = yaml.safe_load(f)
 
 def index_recursive(item, tree): 
     if item in tree: 
@@ -30,7 +30,7 @@ def mux(indices):
     text = ""
     for j in range(len(indices) // 3):
         index = indices[3*j:3*(j+1)]
-        text += item_recursive(index, compressed_cipher)
+        text += item_recursive(index, basic_cipher)
     return text
 
 def demux(text):
@@ -39,7 +39,7 @@ def demux(text):
     for c in text:
         if c not in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ':
             c = '+'
-        indices.extend(index_recursive(c, compressed_cipher))
+        indices.extend(index_recursive(c, basic_cipher))
     return indices
 
 def compress(plaintext):
@@ -48,7 +48,7 @@ def compress(plaintext):
     for c in plaintext:
         if c not in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ':
             c = '+'
-        index = index_recursive(c, basic_cipher)[::-1]
+        index = index_recursive(c, compressed_cipher)[::-1]
         indices.extend(index)
     
     extend_by = {0: 0, 1: 2, 2: 1}[len(indices) % 3]
@@ -60,7 +60,7 @@ def compress(plaintext):
 def decompress(ciphertext):
     indices = demux(ciphertext)
     
-    node = basic_cipher
+    node = compressed_cipher
     plaintext_chars = []
     while len(indices) > 0:
         if len(node) > 1:
@@ -68,7 +68,7 @@ def decompress(ciphertext):
             indices.pop(0)
         else:
             plaintext_chars.append(node)
-            node = basic_cipher
+            node = compressed_cipher
     if len(node) == 1:
         plaintext_chars.append(node)
     plaintext = ''.join(plaintext_chars)
@@ -122,26 +122,6 @@ def heisenberg_subtract(ciphertext, key):
             (cipher_indices[2] + key_indices[2]) % 3
         ])
     return mux(plain_indices)
-
-#def frobnicate(plaintext):
-#    z = int(''.join(str(c) for c in demux(plaintext)), 3)
-#    digits = gmpy2.digits(z, 28)
-#    digits = digits[::-1].replace('0', 's')
-#    zfrob = int(digits, 29)
-#    indices = [int(c) for c in gmpy2.digits(zfrob, 3)]
-#    extend_by = {0: 0, 1: 2, 2: 1}[len(indices) % 3]
-#    indices = [0]*extend_by + indices
-#    return mux([int(c) for c in indices])
-
-#def unfrobnicate(ciphertext):
-#    zfrob = int(''.join(str(c) for c in demux(ciphertext)), 3)
-#    digits = gmpy2.digits(zfrob, 29)
-#    digits = digits[::-1].replace('s', '0')
-#    z = int(digits, 28)
-#    indices = [int(c) for c in gmpy2.digits(z, 3)]
-#    extend_by = {0: 0, 1: 2, 2: 1}[len(indices) % 3]
-#    indices = [0]*extend_by + indices
-#    return mux([int(c) for c in indices])
 
 symbols = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ+'
 
