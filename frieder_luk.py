@@ -1,4 +1,5 @@
 from primitive_polynomials import all_factors
+import sympy
 
 def to_fl(n):
     '''
@@ -95,13 +96,14 @@ def powmod_fl(size, poly):
 
 
 def polysearch_fl(size, which='all'):
-    factors = all_factors(3**size - 1)
+    order = 3**size - 1
+    factors = [order//p for p in sympy.factorint(order)]
     
     primitives = []
     for k in range(3**size):
         power = powmod_fl(size, to_fl(k))
         powers = [power((2, 0), f) for f in factors]
-        if powers[-1] == (1, 0) and all(q != (1, 0) for q in powers[:-1]):
+        if power((2, 0), order) == (1, 0) and all(q != (1, 0) for q in powers):
             primitives.append(k)
             if which == 'first':
                 break

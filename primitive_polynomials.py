@@ -41,13 +41,14 @@ def all_factors(n):
 
 
 def polysearch(size, which='all'):
-    factors = all_factors(2**size - 1)
+    order = 2**size - 1
+    factors = [order//p for p in sympy.factorint(order)]
     
     primitives = []
     for k in range(2**size):
         power = powmod(size, k)
         powers = [power(2, f) for f in factors]
-        if powers[-1] == 1 and all(p != 1 for p in powers[:-1]):
+        if power(2, order) == 1 and all(q != 1 for q in powers):
             primitives.append(k)
             if which == 'first':
                 break
