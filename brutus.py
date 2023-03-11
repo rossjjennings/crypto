@@ -1,6 +1,6 @@
 from itertools import product
 from score import score_markov
-from subs import alphabet
+from subs import alphabet26 as alphabet
 import subs
 import vigenere
 
